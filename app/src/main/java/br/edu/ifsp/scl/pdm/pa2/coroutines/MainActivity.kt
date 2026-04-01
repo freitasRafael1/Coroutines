@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import br.edu.ifsp.scl.pdm.pa2.coroutines.databinding.ActivityMainBinding
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -26,16 +27,24 @@ class MainActivity : AppCompatActivity() {
             var lowerText = "Lower before sleep"
 
             //criando a corrotina
-            GlobalScope.launch {
+            GlobalScope.launch(Dispatchers.Main) {
                 upperText = sleep("Upper", random.nextLong(SLEEP_LIMIT))
                 lowerText = sleep("Lower", random.nextLong(SLEEP_LIMIT))
                 Log.v(
                     getString(R.string.app_name),
-                    "Coroutine threed: ${Thread.currentThread().name}, Job: ${coroutineContext[Job]}"
+                    "Coroutine thread: ${Thread.currentThread().name}, Job: ${coroutineContext[Job]}"
                 )
 
-                runOnUiThread { //agora esse trecho vai ser exe na threed principal
                     amb.upperTv.text = upperText
+            }
+
+            GlobalScope.launch(Dispatchers.Unconfined) {
+                lowerText = sleep("Lower", random.nextLong(SLEEP_LIMIT))
+                Log.v(
+                    getString(R.string.app_name),
+                    "Coroutine thread: ${Thread.currentThread().name}, Job: ${coroutineContext[Job]}"
+                )
+                runOnUiThread {
                     amb.lowerTv.text = lowerText
                 }
             }
@@ -43,8 +52,6 @@ class MainActivity : AppCompatActivity() {
             Log.v(getString(R.string.app_name), "Main threed: ${Thread.currentThread().name}")
         }
     }
-
-
     private suspend fun sleep(name: String, time: Long): String {
         delay(time)
         return "$name slept for $time ms"
