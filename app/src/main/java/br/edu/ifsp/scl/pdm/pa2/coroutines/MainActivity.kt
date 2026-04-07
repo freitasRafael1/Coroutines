@@ -28,25 +28,20 @@ class MainActivity : AppCompatActivity() {
 
             //criando a corrotina
             GlobalScope.launch(Dispatchers.Main) {
-                upperText = sleep("Upper", random.nextLong(SLEEP_LIMIT))
-                lowerText = sleep("Lower", random.nextLong(SLEEP_LIMIT))
-                Log.v(
-                    getString(R.string.app_name),
-                    "Coroutine thread: ${Thread.currentThread().name}, Job: ${coroutineContext[Job]}"
-                )
-
-                    amb.upperTv.text = upperText
-            }
-
-            GlobalScope.launch(Dispatchers.Unconfined) {
-                lowerText = sleep("Lower", random.nextLong(SLEEP_LIMIT))
-                Log.v(
-                    getString(R.string.app_name),
-                    "Coroutine thread: ${Thread.currentThread().name}, Job: ${coroutineContext[Job]}"
-                )
-                runOnUiThread {
-                    amb.lowerTv.text = lowerText
+                val upperJob = launch{
+                    upperText = sleep("Upper", random.nextLong(SLEEP_LIMIT))
                 }
+                val lowerJob = launch{
+                    lowerText = sleep("Lower", random.nextLong(SLEEP_LIMIT))
+                }
+                upperJob.join()
+
+                amb.upperTv.text = upperText
+                amb.lowerTv.text = lowerText
+                Log.v(
+                    getString(R.string.app_name),
+                    "Coroutine thread: ${Thread.currentThread().name}, Job: ${coroutineContext[Job]}"
+                )
             }
 
             Log.v(getString(R.string.app_name), "Main threed: ${Thread.currentThread().name}")
