@@ -7,6 +7,7 @@ import br.edu.ifsp.scl.pdm.pa2.coroutines.databinding.ActivityMainBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
@@ -23,21 +24,31 @@ class MainActivity : AppCompatActivity() {
             val random = Random(System.currentTimeMillis())
             val SLEEP_LIMIT = 3000L
 
-            var upperText = "Upper before sleep"
-            var lowerText = "Lower before sleep"
 
             //criando a corrotina
             GlobalScope.launch(Dispatchers.Main) {
-                val upperJob = launch{
-                    upperText = sleep("Upper", random.nextLong(SLEEP_LIMIT))
+                val upperTextDeferred = async{
+                    Log.v(
+                        getString(R.string.app_name),
+                        "Upper Async Coroutine thread: ${Thread.currentThread().name}, Job: ${coroutineContext[Job]}"
+                    )
+                    sleep("Upper", random.nextLong(SLEEP_LIMIT))
                 }
-                val lowerJob = launch{
-                    lowerText = sleep("Lower", random.nextLong(SLEEP_LIMIT))
-                }
-                upperJob.join()
 
-                amb.upperTv.text = upperText
-                amb.lowerTv.text = lowerText
+
+                val lowerTextDeferred = async{
+                    Log.v(
+                        getString(R.string.app_name),
+                        "Upper Async Coroutine thread: ${Thread.currentThread().name}, Job: ${coroutineContext[Job]}"
+                    )
+                    sleep("Lower", random.nextLong(SLEEP_LIMIT))
+                }
+
+                upperTextDeferred.await().let {
+                    amb.upperTv.text = it
+                }
+                amb.lowerTv.text = lowerTextDeferred.await()
+
                 Log.v(
                     getString(R.string.app_name),
                     "Coroutine thread: ${Thread.currentThread().name}, Job: ${coroutineContext[Job]}"
